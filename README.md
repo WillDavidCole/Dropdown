@@ -1,3 +1,6 @@
+### react-dropdown
+# Descirption
+An updating/conditional dropdown for bootstrap-styled input boxes which uses hotkeys and intellisense-like features for intuitive text entry
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).

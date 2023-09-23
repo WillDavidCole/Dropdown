@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div class="form-group">
+      <label for=""></label>
+      <input type="text"
+        class="form-control" name="test" id="test" aria-describedby="helpId" placeholder="">
+      <small id="helpId" class="form-text text-muted">Help text</small>
+    </div>
+
+    <script>
+        var inp = document.getElementById("test");
+        inp.addEventListener("keydown", function(e){console.log(e.keyCode), false});
+    </script>
+
+</body>
+</html>
