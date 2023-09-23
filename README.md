@@ -1,5 +1,5 @@
 ### react-dropdown
-# Descirption
+# Description
 An updating/conditional dropdown for bootstrap-styled input boxes which uses hotkeys and intellisense-like features for intuitive text entry
 # Getting Started with Create React App
 
