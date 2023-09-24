@@ -8,24 +8,18 @@ import {HotKeysPreventDefaults} from '../utils/HotkeysPreventDefaults';
 
 const Input = ({input}) => {
     
-    const [state,dispatch] = useContext(InputContext);
-    const [wordListArray, setWordListArray] = useState(input.wordList);
-    const [activeDropddown, setActiveDropdown] = useState(false);
-    const [currentInput, setCurrentInput] = useState("");
-    
-    // Dropdown variables
-    const [dropdDownIndex, setDropdDownIndex] = useState(0); // input.inputText.length
+    //state update checks
+    const [state,dispatch] = useContext(InputContext)
+    const [currentInput, setCurrentInput] = useState("")
     
     //input hotkeys
-    const hotkeyhandler = HotKeysPreventDefaults({'activateDropdown': ()  => {   if (!activeDropddown){  setActiveDropdown(true); } }})
+    const hotkeyhandler = HotKeysPreventDefaults({'activateDropdown': ()  => {   if (!input.dropDown){input.dropDown = true} }})
     const hotkeymap = {'activateDropdown': 'ctrl+`'}
     configure({ ignoreTags: ['input', 'select', 'textarea'],ignoreEventsCondition: function() {}}) // run hotkeys in inputs too
     const checkPropagation = (e) => { if(['Tab','Escape','`'].includes(e.key)) { e.preventDefault() } }
-
-    // TODO: these need converting to reducer functions  now
-    const setDropdownIndexUp =  () => { if(dropdDownIndex > 0){ setDropdDownIndex(dropdDownIndex - 1) } }
-    const setDropdownIndexDown =  () => { if((dropdDownIndex + 1) < wordListArray.length){ setDropdDownIndex(dropdDownIndex + 1) }}
-    const filterTokenList = (wordListArray, inputFilter) =>  { return wordListArray.filter((i) => (i.toLowerCase().startsWith(inputFilter.toLowerCase())))}
+    
+    //helpers
+    const getDiff = (inputOne, inputTwo) => ((inputOne.length > inputTwo.length) ?  inputOne.substring(inputTwo.length, inputOne.length ) :  inputTwo.substring(inputOne.length, inputTwo.length) )
 
     //hand off more of these to the reducer
     const evaluateInputKeyUp = (e) => {
@@ -44,9 +38,11 @@ const Input = ({input}) => {
                 dispatch({ type:'TRY_EXPAND', payload:{input:input, newInputText:e.target.value}});
             }
             else
-            {
-                let lastTypedChar = (currentInput.length > e.target.value.length ? currentInput.slice(-1) : e.target.value.slice(-1))
-                if(['(', '.'].includes(lastTypedChar))
+            {   
+
+                let lastTyped = getDiff(currentInput.length,e.target.value)
+                setCurrentInput(e.target.value)
+                if(lastTyped.includes('(') || lastTyped.includes('.'))
                 {
                     dispatch({ type:'DROPDOWNWORDS_CHANGE', payload:{input:input, newInputText:e.target.value}})
                 }
@@ -61,7 +57,7 @@ const Input = ({input}) => {
     // textLength
     const InputBoxItemsList = ({TokensFiltered, textLength}) =>
     {
-        return (TokensFiltered.map( (w, index ) => (<li style={{paddingLeft:0, backgroundColor: ((dropdDownIndex === index)? "lightblue": "white"),textAlign:"left" }} 
+        return (TokensFiltered.map( (w, index ) => (<li style={{paddingLeft:0, backgroundColor: ((input.dropdDownIndex === index)? "lightblue": "white"),textAlign:"left" }} 
                                                         key={index}><p> 
                                                             <strong>{w.substr(0,textLength)}</strong>{w.substr(textLength, w.length)} </p>
                                                         </li>)))
@@ -75,14 +71,14 @@ const Input = ({input}) => {
                     <Form.Control placeholder="Calc" key={input.id}  autoComplete="off"
                                   onKeyDown={(e) => (checkPropagation(e))}
                                   onKeyUp={(e) => {evaluateInputKeyUp(e)}} 
-                                  onBlur={() => (setActiveDropdown(false))} />
+                                  onBlur={() => (input.dropDown = false)} />
 
                 <Form.Text className="text-muted" ></Form.Text>
                 </Form.Group>
-                {(activeDropddown) &&
+                {(input.dropDown) &&
                     <div className="autocomplete-items" style={{zIndex: 5, position: "relative" }}  >
                         <ul style={{ listStyleType: "none", listStylePosition:"inside"}}>
-                                <InputBoxItemsList TokensFiltered={wordListArray} textLength={input.inputText.length}/>
+                                <InputBoxItemsList TokensFiltered={input.wordList} textLength={input.inputText.length}/>
                         </ul>
                     </div>
                 }

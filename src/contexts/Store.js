@@ -11,8 +11,8 @@ import {componentArguments,followingSymbol, grammars} from '../data/Globals.js';
   const initialList = lister.getInitialList();
 
   // global state objects
-  const inputState = {inputs:[{id:1, inputText:"",inputLength:0, dropDown:false, wordList:initialList},
-                              {id:2, inputText:"", inputLength:0,dropDown:false, wordList:initialList}]}
+  const inputState = {inputs:[{id:1, inputText:"",inputLength:0, dropDown:false, dropDownIndex:0, wordList:initialList},
+                              {id:2, inputText:"", inputLength:0,dropDown:false, dropDownIndex:0, wordList:initialList}]}
   const inputData = {wordparser:wordparser, lister:lister, inputdata: inputState};
 
 const Store = ({children}) => {

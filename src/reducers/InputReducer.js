@@ -9,33 +9,50 @@ import {updateInputAttributeFromId,updateInputAttributeFromIndex,getFirstInputIn
          getFirstInputIdWithAttributeValue, readInputAttribute} from '../utils/arrayHelpers'
     
 const InputReducer = (state, action) => {
-    let newInputs;
-
+    
+    let newInputs = state.inputdata.inputs;
+    let newState = { ...state};
+    let newInputData;
+    
     switch (action.type) {
     
     case 'DROPDOWNINDEX_MOVE':
-        return;
+        switch (action.payload.lastKeyType){
+            case 'KeyUp':
+                updateInputAttributeFromId(newInputs, action.payload.input.id, 'dropDownIndex',(action.payload.input.dropDownIndex - 1))
+                break;
+            case 'KeyDown':
+                updateInputAttributeFromId(newInputs, action.payload.input.id, 'dropDownIndex',(action.payload.input.dropDownIndex + 1))
+                break;
+            default:
+                return;
+            }
+        newState["inputdata"].inputs = newInputs;
+        return(newState);
     
     case 'LENGTHTOZERO_SET':
-        return;
-
-    case 'TRY_EXPAND':
-        newInputs = state.inputdata.inputs;
-        let newInputdata = state.lister.getNextWordList(action.payload.newInputText);
-        updateInputAttributeFromId(newInputs, action.payload.input.id, 'wordList',((typeof(newInputdata) === 'undefined') ? [] : newInputdata));
-        updateInputAttributeFromId(newInputs, action.payload.input.id, 'inputText',action.payload.newInputText);
-        let newState = { ...state};
+        updateInputAttributeFromId(newInputs, action.payload.input.id, 'wordList', state.lister.getInitialList())
+        updateInputAttributeFromId(newInputs, action.payload.input.id, 'dropDown',false)
         newState["inputdata"].inputs = newInputs;
         return(newState);
 
+    case 'TRY_EXPAND':
+        updateInputAttributeFromId(newInputs, action.payload.input.id, 'inputText',action.payload.input.wordList[action.payload.input.dropDownIndex])
+        updateInputAttributeFromId(newInputs, action.payload.input.id, 'wordList',[])
+        updateInputAttributeFromId(newInputs, action.payload.input.id, 'dropDown',false)
+        newState["inputdata"].inputs = newInputs;
+        return(newState);
 
     case 'DROPDOWNWORDS_CHANGE':
-        return;
-
-    case 'CHANGE_INPUTTEXT':
-        newInputs = state.inputdata.inputs;
-        newInputs.forEach( (i) =>( i['id'] === action.payload.id ? i.inputText = action.payload.newInputText : i));
-        return{ ...state, inputs: newInputs};
+        newInputData = state.lister.getNextWordList(action.payload.input.newInputText)
+        updateInputAttributeFromId(newInputs, action.payload.input.id, 'wordList',newInputData)
+        newState["inputdata"].inputs = newInputs;
+        return(newState);
+    
+    case  'CHANGE_INPUTTEXT':
+        updateInputAttributeFromId(newInputs, action.payload.input.id, 'inputText',action.payload.newInputText)
+        newState["inputdata"].inputs = newInputs;
+        return(newState);
     
     default:
         return(state);
