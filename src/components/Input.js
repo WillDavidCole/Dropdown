@@ -5,21 +5,19 @@ import { Card, CardBody } from "reactstrap";
 
 import {configure, HotKeys } from "react-hotkeys";
 import {HotKeysPreventDefaults} from '../utils/HotkeysPreventDefaults';
+import {getDiff} from '../utils/arrayHelpers'
 
 const Input = ({input}) => {
     
     //state update checks
-    const [state,dispatch] = useContext(InputContext)
+    const [state, dispatch] = useContext(InputContext)
     const [currentInput, setCurrentInput] = useState("")
     
     //input hotkeys
     const hotkeyhandler = HotKeysPreventDefaults({'activateDropdown': ()  => {   if (!input.dropDown){input.dropDown = true} }})
-    const hotkeymap = {'activateDropdown': 'ctrl+`'}
+    const hotkeymap = {'activateDropdown': 'ctrl+`'} // to do = check why this is only working for the flash of an instant
     configure({ ignoreTags: ['input', 'select', 'textarea'],ignoreEventsCondition: function() {}}) // run hotkeys in inputs too
     const checkPropagation = (e) => { if(['Tab','Escape','`'].includes(e.key)) { e.preventDefault() } }
-    
-    //helpers
-    const getDiff = (inputOne, inputTwo) => ((inputOne.length > inputTwo.length) ?  inputOne.substring(inputTwo.length, inputOne.length ) :  inputTwo.substring(inputOne.length, inputTwo.length) )
 
     //hand off more of these to the reducer
     const evaluateInputKeyUp = (e) => {
@@ -31,11 +29,22 @@ const Input = ({input}) => {
         {   
             if(['ArrowUp','ArrowDown', 'Escape'].includes(e.key))
             {
-                dispatch({ type:'DROPDOWNINDEX_MOVE', payload:{input:input, lastKeyType:e.key}})
+                if(e.key === 'ArrowUp')
+                {
+                    dispatch({ type:'DROPDOWNINDEX_MOVEDOWN', payload:{input:input}})
+                }
+                else if(e.key === 'ArrowDown')
+                {
+                    dispatch({ type:'DROPDOWNINDEX_MOVEUP', payload:{input:input}})
+                }
+                else
+                {
+                    dispatch({ type:'DROPDOWNINDEX_MOVEUP', payload:{input:input}})
+                }
             }
             else if (['Tab'].includes(e.key))
             {
-                dispatch({ type:'TRY_EXPAND', payload:{input:input, newInputText:e.target.value}});
+                dispatch({ type:'TRY_EXPAND', payload:{input:input, newInputText:e.target.value, dropDownSelectionIndex:(input.dropdDownIndex < 0 ? 0 : input.dropdDownIndex)}});
             }
             else
             {   
@@ -57,7 +66,7 @@ const Input = ({input}) => {
     // textLength
     const InputBoxItemsList = ({TokensFiltered, textLength}) =>
     {
-        return (TokensFiltered.map( (w, index ) => (<li style={{paddingLeft:0, backgroundColor: ((input.dropdDownIndex === index)? "lightblue": "white"),textAlign:"left" }} 
+        return (TokensFiltered.map( (w, index ) => (<li style={{paddingLeft:0, backgroundColor: ((input.dropDownIndex === index)? "lightblue": "white"),textAlign:"left" }} 
                                                         key={index}><p> 
                                                             <strong>{w.substr(0,textLength)}</strong>{w.substr(textLength, w.length)} </p>
                                                         </li>)))
@@ -66,7 +75,7 @@ const Input = ({input}) => {
     return(
         <HotKeys keyMap={hotkeymap} handlers={hotkeyhandler}>
         <Card >
-            <CardBody> 
+            <CardBody>
                 <Form.Group id={input.id} className="mb-3" controlId="formBasicText" >
                     <Form.Control placeholder="Calc" key={input.id}  autoComplete="off"
                                   onKeyDown={(e) => (checkPropagation(e))}

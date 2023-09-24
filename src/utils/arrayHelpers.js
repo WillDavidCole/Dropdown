@@ -1,3 +1,7 @@
+export const getDiff = (inputOne, inputTwo) => ((inputOne.length > inputTwo.length) ?  inputOne.substring(inputTwo.length, inputOne.length ) :  inputTwo.substring(inputOne.length, inputTwo.length) )
+
+export const filterTokenList = (wordListArray, inputFilter) =>  { return wordListArray.filter((i) => (i.toLowerCase().startsWith(inputFilter.toLowerCase())))}
+
 export const updateInputAttributeFromId = (inputs, id=NaN, attribute, newValue) => {
     for (let object of inputs) {
       if (!isNaN(id) && object.id === id) {
