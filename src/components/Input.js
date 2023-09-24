@@ -5,8 +5,6 @@ import { Card, CardBody } from "reactstrap";
 
 import {configure, HotKeys } from "react-hotkeys";
 import {HotKeysPreventDefaults} from '../utils/HotkeysPreventDefaults';
-import { WordParser } from "../utils/CalcAutocompletion";
-// import { useHotkeys } from "react-hotkeys-hook";
 
 const Input = ({input}) => {
     
@@ -16,93 +14,50 @@ const Input = ({input}) => {
     const [currentInput, setCurrentInput] = useState("");
     
     // Dropdown variables
-    const maximumDropdownItems = 6;
     const [dropdDownIndex, setDropdDownIndex] = useState(0); // input.inputText.length
-    const [wordLength, setWordLength] = useState(0);
-    const [startIndex, setStartIndex] = useState(0);
-    const [endIndex, setEndIndex] = useState(( wordListArray.length < maximumDropdownItems)? maximumDropdownItems : wordListArray.length)
     
     //input hotkeys
     const hotkeyhandler = HotKeysPreventDefaults({'activateDropdown': ()  => {   if (!activeDropddown){  setActiveDropdown(true); } }})
     const hotkeymap = {'activateDropdown': 'ctrl+`'}
     configure({ ignoreTags: ['input', 'select', 'textarea'],ignoreEventsCondition: function() {}}) // run hotkeys in inputs too
-
-    const setDropdownIndexUp =  () => { if(dropdDownIndex > 0){ setDropdDownIndex(dropdDownIndex - 1) } }
-    const setDropdownIndexDown =  () => {
-        if((dropdDownIndex + 1) < wordListArray.length){ setDropdDownIndex(dropdDownIndex + 1) }
-    }
-
-    const filterTokenList = (wordListArray, inputFilter) => 
-    {
-        return wordListArray.filter((i) => (i.toLowerCase().startsWith(inputFilter.toLowerCase())))
-    }
-
     const checkPropagation = (e) => { if(['Tab','Escape','`'].includes(e.key)) { e.preventDefault() } }
 
-    const evaluateInputKeyUp = (e) => {(
-        e.target.value.length === 0) ? setActiveDropdown(false) : setActiveDropdown(true)
-        let lastTypedChar = (currentInput.length > e.target.value.length ? currentInput.slice(-1) : e.target.value.slice(-1))
+    // TODO: these need converting to reducer functions  now
+    const setDropdownIndexUp =  () => { if(dropdDownIndex > 0){ setDropdDownIndex(dropdDownIndex - 1) } }
+    const setDropdownIndexDown =  () => { if((dropdDownIndex + 1) < wordListArray.length){ setDropdDownIndex(dropdDownIndex + 1) }}
+    const filterTokenList = (wordListArray, inputFilter) =>  { return wordListArray.filter((i) => (i.toLowerCase().startsWith(inputFilter.toLowerCase())))}
 
-                                    if(currentInput !== e.target.value)
-                                    {
-                                        setCurrentInput( e.target.value )
-                                        if (['(', '.'].includes(lastTypedChar))
-                                        {
-                                            if (e.target.value.length === 0)
-                                            {
-                                                let filterWord = state.lister.getFilter(e.target.value)
-                                                setWordListArray(filterTokenList(input.wordList, filterWord))
-                                                setActiveDropdown(false) // setWordListArray(input.wordList);
-                                            }
-                                            else
-                                            {
-                                                dispatch({ type:'TRY_EXPAND', payload:{input:input, newInputText:e.target.value}})
-                                                setActiveDropdown(false)
-                                            }
-                                        }
-                                        else if (e.key === 'Backspace')
-                                        {
-                                            if (e.target.value.length === 0)
-                                            {
-                                                setWordListArray(input.wordList)
-                                                setActiveDropdown(false)
-                                            }
-                                            else
-                                            {
-                                                setWordListArray(filterTokenList(input.wordList, e.target.value))
-                                                setActiveDropdown(true)
-                                            }
-                                        }
-                                        else
-                                        {
-                                            let filterWord = state.lister.getFilter(e.target.value)
-                                            setWordListArray(filterTokenList(input.wordList, filterWord))
-                                            setActiveDropdown(true)
-                                        }
-                                    }
-                                    else
-                                    {
-                                        switch(e.key)
-                                        {
-                                            case 'ArrowUp':
-                                                setDropdownIndexUp();
-                                                break;
-                                            case 'ArrowDown':
-                                                setDropdownIndexDown();
-                                                break;
-                                            case 'Tab':
-                                                e.target.value = state.lister.getExpressionRoot(e.target.value).concat(wordListArray[dropdDownIndex]);
-                                                setCurrentInput(e.target.value);
-                                                setActiveDropdown(false);
-                                                break;
-                                            case 'Escape':
-                                                setActiveDropdown(false);
-                                                break;
-                                            default:
-                                        }
-                                    }
-                                }
-
+    //hand off more of these to the reducer
+    const evaluateInputKeyUp = (e) => {
+        if( e.target.value.length === 0) 
+        {
+            dispatch({ type:'LENGTHTOZERO_SET', payload:{input:input}})
+        }
+        else
+        {   
+            if(['ArrowUp','ArrowDown', 'Escape'].includes(e.key))
+            {
+                dispatch({ type:'DROPDOWNINDEX_MOVE', payload:{input:input, lastKeyType:e.key}})
+            }
+            else if (['Tab'].includes(e.key))
+            {
+                dispatch({ type:'TRY_EXPAND', payload:{input:input, newInputText:e.target.value}});
+            }
+            else
+            {
+                let lastTypedChar = (currentInput.length > e.target.value.length ? currentInput.slice(-1) : e.target.value.slice(-1))
+                if(['(', '.'].includes(lastTypedChar))
+                {
+                    dispatch({ type:'DROPDOWNWORDS_CHANGE', payload:{input:input, newInputText:e.target.value}})
+                }
+                else
+                {
+                    dispatch({ type:'CHANGE_INPUTTEXT', payload:{input:input, newInputText:e.target.value}})
+                }
+            }
+        }
+    }
+     
     // textLength
     const InputBoxItemsList = ({TokensFiltered, textLength}) =>
     {
