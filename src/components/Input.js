@@ -16,8 +16,8 @@ const Input = ({input}) => {
 
     //hotkeys
     const hotkeyhandler = HotKeysPreventDefaults({'activateDropdown': ()  => {   if (!input.dropDown){input.dropDown = true} }})
-    const hotkeymap = {'activateDropdown': 'ctrl+`'} // to do = check why this is only working for the flash of an instant
-    configure({ ignoreTags: ['input', 'select', 'textarea'],ignoreEventsCondition: function() {}}) // run hotkeys in inputs too
+    const hotkeymap = {'activateDropdown': 'ctrl+`'} 
+    configure({ ignoreTags: ['input', 'select', 'textarea'],ignoreEventsCondition: function() {}})
     const checkPropagation = (e) => { if(['Tab','Escape','`'].includes(e.key)) { e.preventDefault() } }
 
     //input does not re-render with new text when autofilled - useEffect to update it
@@ -66,7 +66,6 @@ const Input = ({input}) => {
         }
     }
     
-    
     // input + doropdown components
     const InputBoxItemsList = ({TokensFiltered, textLength}) =>
     {
@@ -104,10 +103,6 @@ const Input = ({input}) => {
         </Card>
         </HotKeys>
         )
-
-// )
-
-        // }
 }
 
 export default Input;

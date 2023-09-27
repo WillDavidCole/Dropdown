@@ -3,8 +3,9 @@ export const getDiff = (inputOne, inputTwo) => ((inputOne.length > inputTwo.leng
 export const filterTokenList = (wordListArray, inputFilter) =>  { return wordListArray.filter((i) => (i.toLowerCase().startsWith(inputFilter.toLowerCase())))}
 
 export const setDropdownIndex = (index, length, move) => {
-  return; //TODO = complete this function
+  return; //TODO = next setDropdownIndex complete this function
 }
+
 export const updateInputAttributeFromId = (inputs, id=NaN, attribute, newValue) => {
     for (let object of inputs) {
       if (!isNaN(id) && object.id === id) {
