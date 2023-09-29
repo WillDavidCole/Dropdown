@@ -1,32 +1,36 @@
-import { useContext, useState, useEffect } from "react"; 
+import { useContext, useState, useEffect, useRef } from "react"; 
 import { InputContext } from "../contexts/Store";
 import  { Form }  from 'react-bootstrap';
 import { Card, CardBody } from "reactstrap";
 
 import {configure, HotKeys } from "react-hotkeys";
 import {HotKeysPreventDefaults} from '../utils/HotkeysPreventDefaults';
-import {getDiff} from '../utils/arrayHelpers'
+import {filterTokenList, getDiff} from '../utils/arrayHelpers'
 
 const Input = ({input}) => {
-    
+
     //state update checks
-    const [state, dispatch] = useContext(InputContext)
+    const [state, dispatch] = useContext(InputContext)    
     const [currentInput, setCurrentInput] = useState("")
     const [inputText, setInputText] = useState(input.inputText);
-
+    let filteredWords, lastTyped;
+    
     //hotkeys
     const hotkeyhandler = HotKeysPreventDefaults({'activateDropdown': ()  => {   if (!input.dropDown){input.dropDown = true} }})
     const hotkeymap = {'activateDropdown': 'ctrl+`'} 
     configure({ ignoreTags: ['input', 'select', 'textarea'],ignoreEventsCondition: function() {}})
-    const checkPropagation = (e) => { if(['Tab','Escape','`'].includes(e.key)) { e.preventDefault() } }
+    const checkPropagation = (e) => { if(['Enter','Escape','`'].includes(e.key)) { e.preventDefault() } }
 
     //input does not re-render with new text when autofilled - useEffect to update it
-    useEffect(() => (setInputText(input.inputText)),[input.inputText])
+    useEffect(  () => ( setInputText(input.inputText) ),[input.inputText])
+
+    const dropDownIndex = useRef(input.dropDownIndex) // to avoid rerenders when the component changes
 
     const evaluateInputKeyUp = (e) => {
+
         if( e.target.value.length === 0) 
         {
-            dispatch({ type:'LENGTHTOZERO_SET', payload:{input:input}})
+            dispatch({ type:'LENGTHTOZERO_SET', payload:{input:input, dropDownIndex:dropDownIndex}})
         }
         else
         {   
@@ -34,11 +38,13 @@ const Input = ({input}) => {
             {
                 if(e.key === 'ArrowUp')
                 {
-                    dispatch({ type:'DROPDOWNINDEX_MOVEDOWN', payload:{input:input}})
+                    dropDownIndex.current = (dropDownIndex.current < 0 ? dropDownIndex.current : dropDownIndex.current - 1)
+                    dispatch({ type:'DROPDOWNINDEX_MOVEDOWN', payload:{input:input, dropDownIndex:dropDownIndex}})
                 }
                 else if(e.key === 'ArrowDown')
                 {
-                    dispatch({ type:'DROPDOWNINDEX_MOVEUP', payload:{input:input}})
+                    dropDownIndex.current = (dropDownIndex.current + 3 > input.filteredWords.length ? input.filteredWords.length - 1 : dropDownIndex.current + 1)
+                    dispatch({ type:'DROPDOWNINDEX_MOVEUP', payload:{input:input, dropDownIndex:dropDownIndex}})
                 }
                 else
                 {
@@ -47,11 +53,11 @@ const Input = ({input}) => {
             }
             else if (['Enter'].includes(e.key))
             {
-                dispatch({ type:'TRY_EXPAND', payload:{input:input,  newInputText:e.target.value, dropDownSelectionIndex:(input.dropdDownIndex < 0 ? 0 : input.dropdDownIndex)}})
+                dispatch({ type:'TRY_EXPAND', payload:{input:input,  expandedWord:input.filteredWords[dropDownIndex.current], dropDownIndex:dropDownIndex}}) // newInputText:e.target.value
             }
             else
             {   
-                let lastTyped = getDiff(currentInput, e.target.value)
+                lastTyped = getDiff(currentInput, e.target.value)
                 setCurrentInput(e.target.value)
                 if(lastTyped.includes('(') || lastTyped.includes('.'))
                 {
@@ -59,17 +65,19 @@ const Input = ({input}) => {
                 }
                 else
                 {
-                    dispatch({ type:'INPUTTEXT_CHANGE', payload:{input:input, newInputText:inputText}})
+                    filteredWords = filterTokenList(input.wordList, inputText)
+                    dropDownIndex.current = ((dropDownIndex.current < filteredWords.length) ? dropDownIndex.current : filteredWords.length)
+                    dispatch({ type:'INPUTTEXT_CHANGE', payload:{input:input, newInputText:inputText, dropDownIndex:dropDownIndex, filteredWords:filteredWords}})
                 }
                 
             }
         }
     }
-    
+
     // input + doropdown components
     const InputBoxItemsList = ({TokensFiltered, textLength}) =>
     {
-        return (TokensFiltered.map( (w, index ) => (<li style={{paddingLeft:0, backgroundColor: ((input.dropDownIndex === index)? "lightblue": "white"),textAlign:"left" }} 
+        return (TokensFiltered.map( (w, index ) => (<li style={{paddingLeft:0, backgroundColor: ((dropDownIndex.current === index)? "lightblue": "white"),textAlign:"left" }} 
                                                         key={index}><p> 
                                                             <strong>{w.substr(0,textLength)}</strong>{w.substr(textLength, w.length)} </p>
                                                         </li>)))

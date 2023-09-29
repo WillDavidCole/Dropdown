@@ -211,6 +211,7 @@ import React from "react";
         return args
       }
       }
+
       //returns attributes based on '.' as last character // from grammars
       getNextAttribute = (expression, index) => {
         var grammarsFiltered = this.getMatchGrammars(expression);
@@ -228,7 +229,7 @@ import React from "react";
       {
         if((expression.includes("(")) || (expression.includes(".")))
         {
-          return (expression.indexOf("(") > expression.indexOf(".") ? expression.substring(0,expression.indexOf("(")+1) : expression.substring(0,expression.indexOf(".") + 1));
+          return (expression.indexOf("(") > expression.indexOf(".") ? expression.substring(0,expression.lastIndexOf("(") + 1) : expression.substring(0,expression.lastIndexOf(".") + 1));
         }
         else
         {
