@@ -154,12 +154,8 @@ import React from "react";
     }
     */
 
-
-
     class Lister // returns the autofill list to complete based on a cue: either '(' or '.' or ','signalling a new argument
     { 
-
-      // Must keep some representation of the list due to conditional lists - e.g. key or definition depending on data_type
       constructor(word_parser, args, grammars, followingSymbol)
       {
         this._wordParser = word_parser;
@@ -168,6 +164,8 @@ import React from "react";
         this._followingSymbol = followingSymbol;
         this._jsonGrammars = Object.values(grammars).map((x) => (JSON.stringify(x)));
       };
+
+      compareArrays = (a, b) => a.length === b.length && a.every((element, index) => element === b[index]);
 
       getUnique = (lst) =>
       {
@@ -186,35 +184,37 @@ import React from "react";
 
       getMatchGrammars = (expression) =>
       {
-        // "data.level('product').datatype('numeric')."
         let Attributes = this._wordParser.getAttributes(expression);
-        let AttributesLength = Attributes.length;
+        let AttributesLength = (Attributes.length);
         let grammarsFiltered = [];
-
-        for(let x = 0; x < this._grammars.length; x++)
+        for(let x = 1; x < Object.keys(this._grammars).length; x++)
         {
-          if(Attributes === this._grammars[x].slice(0, AttributesLength))
+          if(this.compareArrays(Attributes, this._grammars[x].slice(0, AttributesLength)))
           {
             grammarsFiltered.push(this._grammars[x]);
           }
         }
+        return(grammarsFiltered)
       };
 
       getNextWordList = (expression) =>
       {
-        let lastChar = expression.slice(-1);
-        if(lastChar === '.')
-          return this.getNextAttribute(expression,expression.length)
-        if(lastChar === '(')
-      { 
-        let args = this.getArguments(expression,this._wordParser.getAttributes(expression).slice(-1));
-        return args
-      }
+        if(expression.lastIndexOf(".") > expression.lastIndexOf("("))
+          return(this.getNextAttribute(expression))
+        else if((expression.includes("(")))
+        { 
+          let args = this.getArguments(expression,this._wordParser.getAttributes(expression).slice(-1));
+          return(args)
+        }
+        else
+        {
+          return (this.getInitialList())
+        }
       }
 
-      //returns attributes based on '.' as last character // from grammars
-      getNextAttribute = (expression, index) => {
+      getNextAttribute = (expression) => {
         var grammarsFiltered = this.getMatchGrammars(expression);
+        var index = Object.keys(this._wordParser.getAttributes(expression)).length
         let dLength = Object.keys(grammarsFiltered).length;
         let tokens = [];
 
@@ -222,7 +222,7 @@ import React from "react";
         {
           tokens.push(grammarsFiltered[i][index]);
         }
-        return tokens;
+        return this.getUnique(tokens);
       };
 
       getExpressionRoot = (expression) => 
@@ -386,8 +386,15 @@ import React from "react";
       // example expression
       getAttributes = (expression) =>
       {
-        let tokens = [];
-        expression.split('.').forEach( (token) => {(token.indexOf('(') > 0) ? tokens.push(token.substring(0, token.indexOf('('))): tokens.push(token)})
+        let tokens = []
+        expression.split('.')
+                  .filter( (i) => (i !== ''))
+                  .forEach( (token) =>
+                            {
+                              (token.indexOf('(') > 0) ?
+                              tokens.push(token.substring(0, token.indexOf('('))) : 
+                              tokens.push(token)
+                            })
         return tokens;
       };
 

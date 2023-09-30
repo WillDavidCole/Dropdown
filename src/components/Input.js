@@ -1,7 +1,7 @@
 import { useContext, useState, useEffect, useRef } from "react"; 
 import { InputContext } from "../contexts/Store";
 import  { Form }  from 'react-bootstrap';
-import { Card, CardBody } from "reactstrap";
+import { Card, CardBody, DropdownItem } from "reactstrap";
 
 import {configure, HotKeys } from "react-hotkeys";
 import {HotKeysPreventDefaults} from '../utils/HotkeysPreventDefaults';
@@ -48,12 +48,14 @@ const Input = ({input}) => {
                 }
                 else
                 {
-                    dispatch({ type:'DROPDOWN_ESCAPE', payload:{input:input}})
+                    dropDownIndex.current = 0
+                    dispatch({ type:'DROPDOWN_ESCAPE', payload:{input:input,dropDownIndex:dropDownIndex}})
                 }
             }
             else if (['Enter'].includes(e.key))
             {
-                dispatch({ type:'TRY_EXPAND', payload:{input:input,  expandedWord:input.filteredWords[dropDownIndex.current], dropDownIndex:dropDownIndex}}) // newInputText:e.target.value
+                dropDownIndex.current = 0;
+                dispatch({ type:'TRY_EXPAND', payload:{input:input,  expandedWord:(input.inputRoot + input.filteredWords[dropDownIndex.current]), dropDownIndex:dropDownIndex}}) // newInputText:e.target.value
             }
             else
             {   
@@ -61,11 +63,12 @@ const Input = ({input}) => {
                 setCurrentInput(e.target.value)
                 if(lastTyped.includes('(') || lastTyped.includes('.'))
                 {
-                    dispatch({ type:'DROPDOWNWORDS_CHANGE', payload:{input:input, newInputText:e.target.value}})
+                        dropDownIndex.current = 0
+                        dispatch({ type:'DROPDOWNWORDS_CHANGE', payload:{input:input, newInputText:e.target.value, dropDownIndex:dropDownIndex}})
                 }
                 else
                 {
-                    filteredWords = filterTokenList(input.wordList, inputText)
+                    filteredWords = filterTokenList(input.wordList, inputText, input.inputRoot)
                     dropDownIndex.current = ((dropDownIndex.current < filteredWords.length) ? dropDownIndex.current : filteredWords.length)
                     dispatch({ type:'INPUTTEXT_CHANGE', payload:{input:input, newInputText:inputText, dropDownIndex:dropDownIndex, filteredWords:filteredWords}})
                 }
@@ -74,7 +77,6 @@ const Input = ({input}) => {
         }
     }
 
-    // input + doropdown components
     const InputBoxItemsList = ({TokensFiltered, textLength}) =>
     {
         return (TokensFiltered.map( (w, index ) => (<li style={{paddingLeft:0, backgroundColor: ((dropDownIndex.current === index)? "lightblue": "white"),textAlign:"left" }} 
@@ -103,7 +105,7 @@ const Input = ({input}) => {
                 {(input.dropDown) &&
                     <div className="autocomplete-items" style={{zIndex: 5, position: "relative" }}  >
                         <ul style={{ listStyleType: "none", listStylePosition:"inside"}}>
-                                <InputBoxItemsList TokensFiltered={input.filteredWords} textLength={input.inputText.length}/>
+                                <InputBoxItemsList TokensFiltered={input.filteredWords} textLength={input.inputText.substring(input.inputRoot.length).length}/>
                         </ul>
                     </div>
                 }
