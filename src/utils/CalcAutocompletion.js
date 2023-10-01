@@ -156,17 +156,23 @@ import React from "react";
 
     class Lister // returns the autofill list to complete based on a cue: either '(' or '.' or ','signalling a new argument
     { 
-      constructor(word_parser, args, grammars, followingSymbol)
+      constructor(word_parser, args, grammars, calculationData, followingSymbol)
       {
         this._wordParser = word_parser;
         this._args = args;
         this._grammars = grammars;
+        this._calculation_data = calculationData;
         this._followingSymbol = followingSymbol;
         this._jsonGrammars = Object.values(grammars).map((x) => (JSON.stringify(x)));
       };
 
       compareArrays = (a, b) => a.length === b.length && a.every((element, index) => element === b[index]);
 
+      getCalculationData = () =>
+      {
+        return this._calculation_data["calculations"];
+      }
+      
       getUnique = (lst) =>
       {
         return lst.filter((item, i, ar) => ar.indexOf(item) === i);
@@ -324,8 +330,6 @@ import React from "react";
       };
   }
 
-
-  
     // just a bag of helpers for parsing arguments/attributes in expression
     class WordParser
     {

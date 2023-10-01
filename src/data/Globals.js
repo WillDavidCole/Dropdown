@@ -13,6 +13,12 @@ const templates = {
   12: '{"Name":"{% data || _ %}","DataId":"{% datatype:dataid %}","PortfolioId":"{% level %}_PortfolioId","SourceGroupId":"19","PortfolioAttribute{% datatype:type %}TypeId":"{% definition %}","AsAtDate":"AsAtDate","ModelRunId":"-2","CurrencyId":{% "currencytype" %},"CountryId":"0","AssetClassId":"1"}'
 };
 
+
+const calculations = {
+  "opener":"calc",
+  "calculations":{}
+};
+
 const grammars = { // the possible grammars (see those used below)
     1: ['fixed'], // eventually, this could just be a value, int or between quotations for a string, needs a regex verifier for the errors
     2: ['data','node'],
@@ -28,9 +34,10 @@ const grammars = { // the possible grammars (see those used below)
     12: ['data', 'level', 'datatype', 'definition', "currencytype"]
 };
 
-const followingSymbol = { 'fixed':'.' ,'data':'.' ,'node':'(','nodestep':'(','enhanceddata':'(' ,
+const followingSymbol = {'calc':'.', 'fixed':'.' ,'data':'.' ,'node':'(','nodestep':'(','enhanceddata':'(' ,
                           'enhanceddatastep':'(' ,'performancestatistic':'(','level':'(','datatype':'(',
-                          'key':'(','definition':'(','currency':'(','currencytype':'('}
+                          'key':'(','definition':'(','currency':'(','currencytype':'('};
+                          
 // links grammars+template combinations to mappings
 const argument_mappings = { // a dictionary of dictionaries to hold any arguments that might need mapping for any of the grammar_templates_dict combinations
   "nodeid":{}, // example - translates the arguments associated with node - loaded from api on startup, depends on the model (run model) selected
@@ -57,4 +64,4 @@ const argument_validations = {
   enhanceddatastep:"^[a-z,A-Z]"
 }
 
-export {argument_mappings,componentArguments,argument_validations,grammars,templates,followingSymbol}
+export {argument_mappings,componentArguments,argument_validations,grammars,templates,followingSymbol,calculations}

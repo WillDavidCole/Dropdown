@@ -7,6 +7,8 @@
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
     "bootstrap": "^5.3.1",
+    "concurrently": "^8.2.1",
+    "json-server": "^0.17.4",
     "react": "^18.2.0",
     "react-bootstrap": "^2.8.0",
     "react-dom": "^18.2.0",
@@ -14,13 +16,19 @@
     "react-scripts": "5.0.1",
     "reactstrap": "^9.2.0",
     "rebuild": "^0.1.2",
+    "use-fetch": "0.0.7",
+    "use-http": "^1.0.28",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
     "start": "react-scripts start",
+    "client": "react-scripts start",
+    "server": "json-server -p 4000 --watch ./src/mockAPI/db.json",
     "build": "react-scripts build",
+    "dev": "concurrently \"npm run client\" \"npm run server\" ",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "ignore":"¬dev was previously npm run server" 
   },
   "eslintConfig": {
     "extends": [

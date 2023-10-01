@@ -44,6 +44,12 @@ const InputReducer = (state, action) => {
         newState["inputdata"].inputs = newInputs;
         return(newState);
 
+    case 'DROPDOWN_RESET':
+        updateInputAttributeFromId(newInputs, action.payload.input.id, 'dropDown', true)
+        updateInputAttributeFromId(newInputs, action.payload.input.id, 'dropDownIndex', action.payload.dropDownIndex.current)
+        newState["inputdata"].inputs = newInputs;
+        return(newState);
+
     case 'LENGTHTOZERO_SET':
         updateInputAttributeFromId(newInputs, action.payload.input.id, 'filteredWords', action.payload.input.wordList)
         updateInputAttributeFromId(newInputs, action.payload.input.id, 'dropDownIndex', -1)
