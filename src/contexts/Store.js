@@ -1,29 +1,31 @@
 // Just to start off - npm run dev
 import {createContext, useReducer} from 'react';
 import InputReducer from '../reducers/InputReducer.js'; 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 // data and objects used in state
 import {WordParser,Lister} from '../utils/CalcAutocompletion.js';
 import {componentArguments,followingSymbol, grammars, calculations} from '../data/Globals.js';
-import { useFetch} from 'use-http';
+// import { useFetch} from 'use-http';
+
 
 const Store = ({children}) => {
   
-  // load data from the API
-  const [calcs, setCalcs] = useState({});
-  const { get,response,loading } = useFetch('http://localhost:4000');
-
-  async function loadCalcs(){ const calcsData = await get('/Calculations');
-                              if (response.ok) {
-                                setCalcs(calcsData);
-                              }
-                            }
-  
   // initial state data -> objects 
+  const [calcData, setCalcData] = useState({})
   const wordparser = new WordParser();
-  const calculation_data = { ...calculations, calculations: calcs}
-  const lister = new Lister(wordparser, componentArguments, grammars, calculation_data, followingSymbol );
+
+  // getting the calcs data
+  useEffect(() => {
+      const fetchData = async () => {
+          const response = await fetch(`http://localhost:4000/Calculations`)
+          const calcData = await response.json()
+          setCalcData(calcData)
+      };
+      fetchData();
+  }, [])
+
+  const lister = new Lister(wordparser, componentArguments, grammars, followingSymbol, calcData);
   const initialList = lister.getInitialList();
 
   // global state objects
@@ -34,9 +36,10 @@ const Store = ({children}) => {
   const inputData = {wordparser:wordparser, lister:lister, inputdata: inputState};
 
   const [state, dispatch] = useReducer(InputReducer, inputData);
-  return ( <InputContext.Provider value={[state, dispatch]}>
+  return ( 
+    <InputContext.Provider value={[state, dispatch]}>
             {children}
-           </InputContext.Provider>);
+    </InputContext.Provider>);
   }
 
 export const InputContext = createContext();

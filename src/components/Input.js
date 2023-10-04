@@ -3,8 +3,6 @@ import { InputContext } from "../contexts/Store";
 import  { Form }  from 'react-bootstrap';
 import { Card, CardBody, DropdownItem } from "reactstrap";
 
-import {configure, HotKeys } from "react-hotkeys";
-import {HotKeysPreventDefaults} from '../utils/HotkeysPreventDefaults';
 import {filterTokenList, getDiff} from '../utils/arrayHelpers'
 
 const Input = ({input}) => {
@@ -14,25 +12,28 @@ const Input = ({input}) => {
     const [currentInput, setCurrentInput] = useState("")
     const [inputText, setInputText] = useState(input.inputText)
     const [root, setRoot] = useState(true)
-    const calculations = state.getCalculationData()
 
     let filteredWords, lastTyped;
-    
+    const calculations = state.lister.getCalculationData();
+
     //hotkeys -> hotkeys should only be used in the level above
     // const hotkeyhandler = HotKeysPreventDefaults({'activateDropdown': ()  => {   if (!input.dropDown){input.dropDown = true} }})
     // const hotkeymap = {'activateDropdown': 'ctrl+`'} 
     // configure({ ignoreTags: ['input', 'select', 'textarea'],ignoreEventsCondition: function() {}})
 
     const checkPropagation = (e) => { if(['Enter','Escape','`'].includes(e.key)) { e.preventDefault() } }
+    
     //input does not re-render with new text when autofilled - useEffect to update it
     useEffect(  () => ( setInputText(input.inputText) ),[input.inputText])
     const dropDownIndex = useRef(input.dropDownIndex) // to avoid rerenders when the component changes
-    const decideIsRoot = (text) => { text.includes("(")  && calculations.forEach(x => "calc." + x).any(x => (x.includes(text.toLowerCase())))} // this needs testing for validity
+    
+    const decideIsRoot = (text) => { text.includes("(")  // this needs testing for validity
+                                     &&  calculations.forEach(x => "calc." + x)
+                                                      .any(x => (x.includes(text.toLowerCase())))
+                                    }
 
     // the reducer caller (from input)
     const evaluateInputKeyUp = (e) => {
-
-        setRoot(decideIsRoot(input.inputText)) // Master = check input.inputText at this point - check which component
         
         if( e.target.value.length === 0) 
         {
@@ -73,11 +74,13 @@ const Input = ({input}) => {
                 setCurrentInput(e.target.value)
                 if(lastTyped.includes('(') || lastTyped.includes('.'))
                 {
+                        setRoot(decideIsRoot(e.target.value)) // Master = check input.inputText at this point - check which component
                         dropDownIndex.current = 0
                         dispatch({ type:'DROPDOWNWORDS_CHANGE', payload:{input:input, newInputText:e.target.value, dropDownIndex:dropDownIndex, root:root}})
                 }
                 else
                 {
+                    setRoot(decideIsRoot(e.target.value))
                     filteredWords = filterTokenList(input.wordList, input.rootList, inputText, input.inputRoot, root)
                     dropDownIndex.current = ((dropDownIndex.current < filteredWords.length) ? dropDownIndex.current : filteredWords.length)
                     dispatch({ type:'INPUTTEXT_CHANGE', payload:{input:input, newInputText:inputText, dropDownIndex:dropDownIndex, filteredWords:filteredWords}})

@@ -1,9 +1,17 @@
 export const getDiff = (inputOne, inputTwo) => ((inputOne.length > inputTwo.length) ?  inputOne.substring(inputTwo.length, inputOne.length ) :  inputTwo.substring(inputOne.length, inputTwo.length) )
 
-export const filterTokenList = (wordListArray, inputFilter, inputRoot) =>  { 
-    return wordListArray.filter((i) => 
-    (i.toLowerCase().startsWith(inputFilter.substring(inputRoot.length).toLowerCase())))
+//input.wordList, input.rootList, inputText, input.inputRoot, root
+export const filterTokenList = (wordListArray, rootListArray, inputFilter, inputRoot, isRoot) =>  
+{
+  if(isRoot)
+  {
+    return rootListArray.filter((i) => (i.toLowerCase().startsWith( i.substring(inputRoot.length).toLowerCase())))
+  } 
+  else
+  {
+    return wordListArray.filter((i) => (i.toLowerCase().startsWith( i.substring(inputRoot.length).toLowerCase())))
   }
+}
 
 export const setDropdownIndex = (index, length, move) => {
   return; //TODO = next setDropdownIndex complete this function

@@ -6,11 +6,11 @@ const App = () => {
 
   return (
     <div className="App">
-      <Store>
-        <div className="inputField">
-          <InputsList/>
-        </div>
-      </Store>
+        <Store>
+          <div className="inputField">
+            <InputsList/>
+          </div>
+        </Store>
     </div>
   );
 }
