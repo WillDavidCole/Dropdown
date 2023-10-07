@@ -1,6 +1,6 @@
 import Input from './Input';
 import { InputContext } from "../contexts/Store";
-import { useContext, useEffect } from 'react';
+import { useContext, useState, useEffect } from 'react';
 
 
 const InputsList = ({calcs}) => {

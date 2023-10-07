@@ -1,41 +1,49 @@
 // Just to start off - npm run dev
 import {createContext, useReducer} from 'react';
 import InputReducer from '../reducers/InputReducer.js'; 
-import { useState, useEffect } from 'react';
 
 // data and objects used in state
 import {WordParser,Lister} from '../utils/CalcAutocompletion.js';
 import {componentArguments,followingSymbol, grammars, calculations} from '../data/Globals.js';
-// import { useFetch} from 'use-http';
-
+import { useState, useEffect } from 'react';
 
 const Store = ({children}) => {
   
-  // initial state data -> objects 
-  const [calcData, setCalcData] = useState({})
-  const wordparser = new WordParser();
+    const [calcData, setCalcData] = useState()
 
-  // getting the calcs data
-  useEffect(() => {
-      const fetchData = async () => {
-          const response = await fetch(`http://localhost:4000/Calculations`)
-          const calcData = await response.json()
-          setCalcData(calcData)
-      };
-      fetchData();
-  }, [])
+    // initial state data -> objects 
+    const wordparser = new WordParser();
 
-  const lister = new Lister(wordparser, componentArguments, grammars, followingSymbol, calcData);
-  const initialList = lister.getInitialList();
+  // word_parser, args, grammars, followingSymbol, calculationData
+    const lister = new Lister(wordparser, 
+      componentArguments,
+      grammars,
+      followingSymbol)
+    const initialList = lister.getInitialList();
 
-  // global state objects
+    const fetchData = async () => {
+      try {
+        const response = await fetch(`http://localhost:4000/Calculations`);
+        const result = await response.json();
+        lister.setCalculations(result)
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    }
+
+    // getting the calcs data
+    useEffect(() => {
+                      fetchData()
+                    }, [])
+
+    // global state objects
   const inputState = {inputs:[{id:1, inputText:"",inputLength:0, dropDown:false, dropDownIndex:-1, rootList:['calc'], filterRoot:['calc'], 
                                 filteredWords: initialList, wordList:initialList, inputRoot:""},
                               {id:2, inputText:"", inputLength:0,dropDown:false, dropDownIndex:-1, rootList:['calc'], filterRoot:['calc'], 
                                 filteredWords: initialList, wordList:initialList, inputRoot:""}]}
   const inputData = {wordparser:wordparser, lister:lister, inputdata: inputState};
-
   const [state, dispatch] = useReducer(InputReducer, inputData);
+  
   return ( 
     <InputContext.Provider value={[state, dispatch]}>
             {children}

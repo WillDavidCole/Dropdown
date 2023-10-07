@@ -156,28 +156,28 @@ import React from "react";
 
     class Lister // returns the autofill list to complete based on a cue: either '(' or '.' or ','signalling a new argument
     { 
-      constructor(word_parser, args, grammars, followingSymbol, calculationData = {})
+      constructor(word_parser, args, grammars, followingSymbol, calculationData)
       {
-        this._wordParser = word_parser;
-        this._args = args;
-        this._grammars = grammars;
-        this._calculation_data = calculationData;
-        this._followingSymbol = followingSymbol;
-        this._jsonGrammars = Object.values(grammars).map((x) => (JSON.stringify(x)));
-        this.calculationsSet = false;
+        this._wordParser = word_parser
+        this._args = args
+        this._grammars = grammars
+        // this._calculation_data = calculationData
+        this._followingSymbol = followingSymbol
+        this._jsonGrammars = Object.values(grammars).map((x) => (JSON.stringify(x)))
+        this.calculationsSet = false
       };
 
       compareArrays = (a, b) => a.length === b.length && a.every((element, index) => element === b[index]);
 
+      getCalculations = () => 
+      {
+        return this._calculation_data
+      }
+
       setCalculations = (calculationData) => 
       {
         this._calculation_data = calculationData;
-        this.this.calculationsSet = true;
-      }
-      
-      getCalculationData = () =>
-      {
-        return this._calculation_data["calculations"];
+        this.calculationsSet = true;
       }
       
       getUnique = (lst) =>

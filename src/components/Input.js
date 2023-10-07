@@ -14,30 +14,22 @@ const Input = ({input}) => {
     const [root, setRoot] = useState(true)
 
     let filteredWords, lastTyped;
-    const calculations = state.lister.getCalculationData();
-
-    //hotkeys -> hotkeys should only be used in the level above
-    // const hotkeyhandler = HotKeysPreventDefaults({'activateDropdown': ()  => {   if (!input.dropDown){input.dropDown = true} }})
-    // const hotkeymap = {'activateDropdown': 'ctrl+`'} 
-    // configure({ ignoreTags: ['input', 'select', 'textarea'],ignoreEventsCondition: function() {}})
-
     const checkPropagation = (e) => { if(['Enter','Escape','`'].includes(e.key)) { e.preventDefault() } }
     
     //input does not re-render with new text when autofilled - useEffect to update it
     useEffect(  () => ( setInputText(input.inputText) ),[input.inputText])
     const dropDownIndex = useRef(input.dropDownIndex) // to avoid rerenders when the component changes
-    
-    const decideIsRoot = (text) => { text.includes("(")  // this needs testing for validity
-                                     &&  calculations.forEach(x => "calc." + x)
-                                                      .any(x => (x.includes(text.toLowerCase())))
-                                    }
 
-    // the reducer caller (from input)
-    const evaluateInputKeyUp = (e) => {
-        
+    const decideIsRoot = (text) => {
+                                     return (state.lister._calculation_data.map(x => "calc." + x["CalcShortName"])
+                                    .some(x => (x.toLowerCase().includes(text.toLowerCase())))
+                                    )}
+    const evaluateInputKeyUp = (e) => 
+    {
+        let isRoot = true
         if( e.target.value.length === 0) 
         {
-            dispatch({ type:'LENGTHTOZERO_SET', payload:{input:input, dropDownIndex:dropDownIndex, root:root}})
+            dispatch({ type:'LENGTHTOZERO_SET', payload:{input:input, dropDownIndex:dropDownIndex}})
         }
         else
         {   
@@ -74,18 +66,17 @@ const Input = ({input}) => {
                 setCurrentInput(e.target.value)
                 if(lastTyped.includes('(') || lastTyped.includes('.'))
                 {
-                        setRoot(decideIsRoot(e.target.value)) // Master = check input.inputText at this point - check which component
-                        dropDownIndex.current = 0
-                        dispatch({ type:'DROPDOWNWORDS_CHANGE', payload:{input:input, newInputText:e.target.value, dropDownIndex:dropDownIndex, root:root}})
+                    setRoot(decideIsRoot(e.target.value))
+                    dropDownIndex.current = 0
+                    dispatch({ type:'DROPDOWNWORDS_CHANGE', payload:{input:input, newInputText:e.target.value, dropDownIndex:dropDownIndex, root:root}})
                 }
                 else
                 {
                     setRoot(decideIsRoot(e.target.value))
-                    filteredWords = filterTokenList(input.wordList, input.rootList, inputText, input.inputRoot, root)
+                    filteredWords = filterTokenList(input.wordList, input.rootList, inputText, input.inputRoot, isRoot)
                     dropDownIndex.current = ((dropDownIndex.current < filteredWords.length) ? dropDownIndex.current : filteredWords.length)
-                    dispatch({ type:'INPUTTEXT_CHANGE', payload:{input:input, newInputText:inputText, dropDownIndex:dropDownIndex, filteredWords:filteredWords}})
-                }
-                
+                    dispatch({ type:'INPUTTEXT_CHANGE', payload:{input:input, newInputText:inputText, dropDownIndex:dropDownIndex, filteredWords:filteredWords, root:root}})
+                }   
             }
         }
     }
@@ -98,22 +89,20 @@ const Input = ({input}) => {
                                                         </li>)))
     }
     
-    // <HotKeys keyMap={hotkeymap} handlers={hotkeyhandler}>
-    //</HotKeys>
     return(
-        <Card >
+        <Card>
             <CardBody>
                 <Form.Group id={input.id} className="mb-3" controlId="formBasicText" >
-                    <Form.Control placeholder="Calc"
-                                  key={input.id}
-                                  type="text"
-                                  value={ inputText } 
-                                  autoComplete="off"
-                                  onKeyDown={(e) => (checkPropagation(e))}
-                                  onKeyUp={(e) => {evaluateInputKeyUp(e)}}
-                                  onChange={(e ) => (setInputText(e.target.value))}
-                                  onBlur={() => (input.dropDown = false)}
-                                  />
+                    <Form.Control   placeholder="Calc"
+                                    key={input.id}
+                                    type="text"
+                                    value={ inputText } 
+                                    autoComplete="off"
+                                    onKeyDown={(e) => (checkPropagation(e))}
+                                    onKeyUp={(e) => {evaluateInputKeyUp(e)}}
+                                    onChange={(e ) => (setInputText(e.target.value))}
+                                    onBlur={() => (input.dropDown = false)}
+                                />
                 </Form.Group>
 
                 {(input.dropDown) &&
@@ -125,7 +114,7 @@ const Input = ({input}) => {
                 }
             </CardBody>
         </Card>
-        )
+    )
 }
 
 export default Input;
