@@ -28,6 +28,30 @@ const InputReducer = (state, action) => {
         newState["inputdata"].inputs = newInputs
         return(newState);
         
+    case 'DROPDOWNWORDS_CHANGE':
+        if (action.payload.root === false)
+        {
+            newInputData = state.lister.getNextWordList(action.payload.newInputText)
+            newRoot = state.lister.getExpressionRoot(action.payload.newInputText)
+            updateInputAttributeFromId(newInputs, action.payload.input.id, 'wordList',newInputData)
+            updateInputAttributeFromId(newInputs, action.payload.input.id, 'filteredWords',newInputData)
+            updateInputAttributeFromId(newInputs, action.payload.input.id, 'filteredRoot',newInputData)
+    
+        }
+        else
+        {
+            newInputData = state.lister.getNextWordList(action.payload.newInputText,true)
+            newRoot = state.lister.getExpressionRoot(action.payload.newInputText)
+            updateInputAttributeFromId(newInputs, action.payload.input.id, 'rootList',newInputData)
+            updateInputAttributeFromId(newInputs, action.payload.input.id, 'filteredRoot',newInputData)
+            updateInputAttributeFromId(newInputs, action.payload.input.id, 'filteredWords',newInputData)
+        }
+        updateInputAttributeFromId(newInputs, action.payload.input.id, 'inputRoot', newRoot)
+        updateInputAttributeFromId(newInputs, action.payload.input.id, 'dropDownIndex', action.payload.dropDownIndex.current)
+        updateInputAttributeFromId(newInputs, action.payload.input.id, 'dropDown',true)
+        newState["inputdata"].inputs = newInputs;
+        return(newState);
+
     case 'DROPDOWNINDEX_MOVEUP':
         updateInputAttributeFromId(newInputs, action.payload.input.id, 'dropDownIndex',action.payload.dropDownIndex.current)
         newState["inputdata"].inputs = newInputs;
@@ -51,9 +75,17 @@ const InputReducer = (state, action) => {
         return(newState);
 
     case 'LENGTHTOZERO_SET':
-        updateInputAttributeFromId(newInputs, action.payload.input.id, 'filteredWords', action.payload.input.wordList)
+        if(action.payload.root === true)
+        {
+            updateInputAttributeFromId(newInputs, action.payload.input.id, 'filteredWords', action.payload.input.filterRoot)
+            updateInputAttributeFromId(newInputs, action.payload.input.id, 'wordList', action.payload.input.rootList)
+        }
+        else
+        {
+            updateInputAttributeFromId(newInputs, action.payload.input.id, 'filteredWords', action.payload.input.wordList)
+            updateInputAttributeFromId(newInputs, action.payload.input.id, 'wordList', action.payload.input.wordList)
+        }
         updateInputAttributeFromId(newInputs, action.payload.input.id, 'dropDownIndex', -1)
-        updateInputAttributeFromId(newInputs, action.payload.input.id, 'wordList', action.payload.input.wordList)
         updateInputAttributeFromId(newInputs, action.payload.input.id, 'dropDown',false)
         newState["inputdata"].inputs = newInputs;
         return(newState);
@@ -63,17 +95,6 @@ const InputReducer = (state, action) => {
         updateInputAttributeFromId(newInputs, action.payload.input.id, 'inputText', action.payload.expandedWord)
         updateInputAttributeFromId(newInputs, action.payload.input.id, 'filteredWords',[])
         updateInputAttributeFromId(newInputs, action.payload.input.id, 'dropDown',false)
-        newState["inputdata"].inputs = newInputs;
-        return(newState);
-
-    case 'DROPDOWNWORDS_CHANGE':
-        newInputData = state.lister.getNextWordList(action.payload.newInputText)
-        newRoot = state.lister.getExpressionRoot(action.payload.newInputText)
-        updateInputAttributeFromId(newInputs, action.payload.input.id, 'wordList',newInputData)
-        updateInputAttributeFromId(newInputs, action.payload.input.id, 'filteredWords',newInputData)
-        updateInputAttributeFromId(newInputs, action.payload.input.id, 'inputRoot', newRoot)
-        updateInputAttributeFromId(newInputs, action.payload.input.id, 'dropDownIndex', action.payload.dropDownIndex.current)
-        updateInputAttributeFromId(newInputs, action.payload.input.id, 'dropDown',true)
         newState["inputdata"].inputs = newInputs;
         return(newState);
 

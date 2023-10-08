@@ -161,7 +161,6 @@ import React from "react";
         this._wordParser = word_parser
         this._args = args
         this._grammars = grammars
-        // this._calculation_data = calculationData
         this._followingSymbol = followingSymbol
         this._jsonGrammars = Object.values(grammars).map((x) => (JSON.stringify(x)))
         this.calculationsSet = false
@@ -210,10 +209,17 @@ import React from "react";
         return(grammarsFiltered)
       };
 
-      getNextWordList = (expression) =>
+      getNextWordList = (expression, root=false) =>
       {
         if(expression.lastIndexOf(".") > expression.lastIndexOf("("))
-          return(this.getNextAttribute(expression))
+          if(root === true)
+          {
+            return(this.getCalculations().map(x => x["CalcShortName"]))
+          }
+          else
+          {
+            return(this.getNextAttribute(expression))
+          }
         else if((expression.includes("(")))
         { 
           let args = this.getArguments(expression,this._wordParser.getAttributes(expression).slice(-1));
@@ -221,7 +227,14 @@ import React from "react";
         }
         else
         {
-          return (this.getInitialList())
+          if(root === true)
+          {
+            return(["calc"])
+          }
+          else
+          {
+            return (this.getInitialList())
+          }
         }
       }
 

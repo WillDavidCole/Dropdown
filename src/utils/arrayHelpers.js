@@ -5,6 +5,7 @@ export const filterTokenList = (wordListArray, rootListArray, inputFilter, input
 {
   if(isRoot)
   {
+    
     return rootListArray.filter((i) => (i.toLowerCase().startsWith( i.substring(inputRoot.length).toLowerCase())))
   } 
   else

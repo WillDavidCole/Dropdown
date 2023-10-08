@@ -21,15 +21,14 @@ const Input = ({input}) => {
     const dropDownIndex = useRef(input.dropDownIndex) // to avoid rerenders when the component changes
 
     const decideIsRoot = (text) => {
-                                     return (state.lister._calculation_data.map(x => "calc." + x["CalcShortName"])
-                                    .some(x => (x.toLowerCase().includes(text.toLowerCase())))
+                                     return (state.lister._calculation_data.map(x => "calc." + x["CalcShortName"].toLowerCase() + "(")
+                                     .some(x => (x.toLowerCase().includes(text.toLowerCase())))
                                     )}
     const evaluateInputKeyUp = (e) => 
     {
-        let isRoot = true
         if( e.target.value.length === 0) 
         {
-            dispatch({ type:'LENGTHTOZERO_SET', payload:{input:input, dropDownIndex:dropDownIndex}})
+            dispatch({ type:'LENGTHTOZERO_SET', payload:{input:input, dropDownIndex:dropDownIndex, root:root}})
         }
         else
         {   
@@ -73,7 +72,7 @@ const Input = ({input}) => {
                 else
                 {
                     setRoot(decideIsRoot(e.target.value))
-                    filteredWords = filterTokenList(input.wordList, input.rootList, inputText, input.inputRoot, isRoot)
+                    filteredWords = filterTokenList(input.wordList, input.rootList, inputText, input.inputRoot, root)
                     dropDownIndex.current = ((dropDownIndex.current < filteredWords.length) ? dropDownIndex.current : filteredWords.length)
                     dispatch({ type:'INPUTTEXT_CHANGE', payload:{input:input, newInputText:inputText, dropDownIndex:dropDownIndex, filteredWords:filteredWords, root:root}})
                 }   
