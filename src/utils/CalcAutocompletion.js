@@ -209,7 +209,7 @@ import React from "react";
         return(grammarsFiltered)
       };
 
-      getNextWordList = (expression, root=false) =>
+      getNextWordList =  (expression, root=false) =>
       {
         if(expression.lastIndexOf(".") > expression.lastIndexOf("("))
           if(root === true)
