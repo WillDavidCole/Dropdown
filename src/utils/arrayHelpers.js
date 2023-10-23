@@ -1,6 +1,5 @@
 export const getDiff = (inputOne, inputTwo) => ((inputOne.length > inputTwo.length) ?  inputOne.substring(inputTwo.length, inputOne.length ) :  inputTwo.substring(inputOne.length, inputTwo.length) )
 
-//input.wordList, input.rootList, inputText, input.inputRoot, root
 export const filterTokenList = (wordListArray, rootListArray, inputFilter, inputRoot, isRoot) =>  
 {
   if(isRoot)
@@ -12,10 +11,6 @@ export const filterTokenList = (wordListArray, rootListArray, inputFilter, input
   {
     return wordListArray.filter((i) => (i.toLowerCase().startsWith( i.substring(inputRoot.length).toLowerCase())))
   }
-}
-
-export const setDropdownIndex = (index, length, move) => {
-  return; //TODO = next setDropdownIndex complete this function
 }
 
 export const updateInputAttributeFromId = (inputs, id=NaN, attribute, newValue) => {
@@ -61,4 +56,3 @@ export const updateInputAttributeFromId = (inputs, id=NaN, attribute, newValue) 
     }
   }
   
-//   export updateInputAttributeFromId,updateInputAttributeFromIndex,getFirstInputIndexWithAttributeValue,getFirstInputIdWithAttributeValue,readInputAttribute;

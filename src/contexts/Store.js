@@ -3,16 +3,23 @@ import {createContext, useReducer} from 'react';
 import InputReducer from '../reducers/InputReducer.js'; 
 
 // data and objects used in state
-import {WordParser,Lister} from '../utils/CalcAutocompletion.js';
+import {splitOnFirstInstanceOnly, splitString, getSplitStringFunction} from "../utils/Main"
+import {Parser} from "../utils/parser.js"
+import {Lister} from '../utils/CalcAutocompletion.js';
 import {componentArguments,followingSymbol, grammars, calculations} from '../data/Globals.js';
 import { useState, useEffect } from 'react';
 
 const Store = ({children}) => {
-  
+
+  // create the new parser here -> specific for this application
+    const splitOnFirstInstanceOfOpenPranthesis = getSplitStringFunction(splitOnFirstInstanceOnly, "(")
+    const splitStringByComma = getSplitStringFunction(splitString, ",")
+    const wordparser = new Parser([splitOnFirstInstanceOfOpenPranthesis, splitStringByComma]);
+
     const [calcData, setCalcData] = useState()
 
     // initial state data -> objects 
-    const wordparser = new WordParser();
+    // const wordparser = new WordParser();
 
   // word_parser, args, grammars, followingSymbol, calculationData
     const lister = new Lister(wordparser, 

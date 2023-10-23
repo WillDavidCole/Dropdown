@@ -6,18 +6,31 @@ class Parser
     }
 
     // TODO = this still needs some work - to get all components from statement (root, args)
-    parseExpression = (expressionArray, splitterFunction) =>
-    {
-      let concatenateArrays = (x,y) => {return(x.concat(y))}
-      return expressionArray.map(x => splitterFunction(x)).reduce(y => concatenateArrays(y))
-    }
+    // parseExpression = (expressionArray, splitterFunction) =>
+    // {
+    //   let concatenateArrays = (x,y) => {return(x.concat(y))}
+    //   return expressionArray.map(x => splitterFunction(x)).reduce(y => concatenateArrays(y))
+    // }
 
     parseExpressionFromFunctionArray = (expressionArray) =>
     {
-      let concatenateArrays = (x,y) => {return(x.concat(y))}
-      return expressionArray.map( 
-                                  x => ( this._functionArray.map(fn => fn(x)).reduce(z => concatenateArrays(z)) )
-                                ).reduce(y => concatenateArrays(y))
+      let i = 0; let x = 0;
+      let prevArr = expressionArray; let nextArr = [];
+
+      while(x < this._functionArray.length)
+      {
+        while ( i < prevArr.length)
+        {
+          nextArr = nextArr.concat(this._functionArray[x](prevArr[i]))
+          i++
+        }
+        i = 0
+        prevArr = nextArr
+        nextArr = []
+        x++
+      }
+
+      return prevArr
     }
 
     // Gets the array of tokens split by chosen symbols
