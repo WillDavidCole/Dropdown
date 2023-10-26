@@ -1,5 +1,7 @@
 export const getDiff = (inputOne, inputTwo) => ((inputOne.length > inputTwo.length) ?  inputOne.substring(inputTwo.length, inputOne.length ) :  inputTwo.substring(inputOne.length, inputTwo.length) )
 
+export const concatenateArrays = (arrays) =>  (Array.isArray(arrays[0]) ? arrays.reduce((x, y) => x.concat(y)) : arrays ) // takes an array of arrays
+
 export const filterTokenList = (wordListArray, rootListArray, inputFilter, inputRoot, isRoot) =>  
 {
   if(isRoot)

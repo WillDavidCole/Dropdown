@@ -21,7 +21,7 @@ const P = new Parser([splitOnFirstInstanceOfOpenPranthesis, splitStringByComma])
 // const testExpression
 const testExpression = "calc._Multiply(fixed(6), fixed(9))";
 
-const X = P.parseExpressionFromFunctionArray([testExpression])
+let X = P.parseExpressionFromFunctionArray([testExpression])
 console.log(X)
 
 // TO DO = Create a Lister + a function to ensure that root can be identified in an expression - if not root, then it's an argument
