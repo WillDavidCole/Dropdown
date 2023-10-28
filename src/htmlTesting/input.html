@@ -3,21 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
     <script type="text/javascript" src="./jsfunctions.js"> </script>
-    <script type="text/javascript" src="./parser.js"> </script>
+    
     <title>Document</title>
 </head>
 <body>
     <div class="form-group">
       <label for=""></label>
-      <input type="text"
+      <input id="test" type="text"
         class="form-control" name="test" id="test" aria-describedby="helpId" placeholder="">
       <small id="helpId" class="form-text text-muted">Help text</small>
     </div>
 
     <script>
         var inp = document.getElementById("test");
-        inp.addEventListener("keydown", function(e){console.log(e.keyCode), false});
+        inp.addEventListener("keyup", function(e)
+        {
+          console.log(getFilteredList(e.target.value)), false
+        });
     </script>
 
 </body>

@@ -116,3 +116,5 @@ class Parser
     }
 
 }
+
+export { Parser }

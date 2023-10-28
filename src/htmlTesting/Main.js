@@ -12,7 +12,6 @@ import Parser from './parser.js'
 	}
 }
 
-
 // Getting / creating split functions 
 const splitOnFirstInstanceOfOpenPranthesis = getSplitStringFunction(splitOnFirstInstanceOnly, "(")
 const splitStringByComma = getSplitStringFunction(splitString, ",")
@@ -25,3 +24,6 @@ let X = P.parseExpressionFromFunctionArray([testExpression])
 console.log(X)
 
 // TO DO = Create a Lister + a function to ensure that root can be identified in an expression - if not root, then it's an argument
+// write out a test here -> instantiate parser / lister and test with multiple expression statements
+// note = need to go to the calcs api -> so make sure it can be started
+// need to populate some of the globals with dependencies (arg dependencies) and calculation data AND make the args api conditional on filters -> e.g. numeric or text

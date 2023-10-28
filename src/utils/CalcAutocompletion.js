@@ -415,12 +415,12 @@ import React from "react";
                   .filter( (i) => (i !== ''))
                   .forEach( (token) =>
                             {
-                              (token.indexOf('(') > 0) ?
+                              (0 < token.indexOf('(')) ?
                               tokens.push(token.substring(0, token.indexOf('('))) : 
                               tokens.push(token)
                             })
         return tokens;
-      };
+      }
 
       // that('one').is('two').a('three').fake('four').array
       // think of case where there are two or 0 arguments

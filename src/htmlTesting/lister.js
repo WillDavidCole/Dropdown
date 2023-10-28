@@ -101,6 +101,19 @@ class Lister
         return filterArray.toLowerCase().filter(x => x.startsWith(expressionFilterPart.toLowerCase())) //may modify the behaviour of this in future
     }
 
+
+    // The parent procedure - returns intellisense dropdown list on each
+    getNextFilteredDropdownList = (expression) => 
+    {
+      
+      let isRoot = (expression.indexOf("(") === -1 ) ? true : false
+      let expressions = this._lister.parseExpressionFromFunctionArray(expression)
+      let lastExpression = expressions[expressions.length - 1]
+      let filterPart = this._lister.getExpressionFilterPart(lastExpression)
+
+      return this.getSimpleFilter(filterPart,this.getNextWordList(expression, isRoot))
+    }
+
     getGrammarPlaceholdersArray = (grammar,openingChars='{%', closingChars='%}') =>
     {
         var placeholders = [];
@@ -120,3 +133,5 @@ class Lister
           return placeholders;
     }
 }
+
+export {Lister}

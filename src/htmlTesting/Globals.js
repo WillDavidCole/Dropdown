@@ -13,6 +13,11 @@ const templates = {
   12: '{"Name":"{% data || _ %}","DataId":"{% datatype:dataid %}","PortfolioId":"{% level %}_PortfolioId","SourceGroupId":"19","PortfolioAttribute{% datatype:type %}TypeId":"{% definition %}","AsAtDate":"AsAtDate","ModelRunId":"-2","CurrencyId":{% "currencytype" %},"CountryId":"0","AssetClassId":"1"}'
 };
 
+const argDependencies = {
+  "key":["datatype","level"],
+  "definition":["datatype","level"]
+};
+
 const calculations = {
   "opener":"calc",
   "calculations":{}

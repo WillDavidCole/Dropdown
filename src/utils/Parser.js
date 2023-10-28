@@ -1,3 +1,6 @@
+/*
+  Full function to be used with Lister
+*/
 class Parser
 {
     constructor (functionArray)
@@ -5,22 +8,34 @@ class Parser
       this._functionArray = functionArray
     }
 
-    // TODO = this still needs some work - to get all components from statement (root, args)
-    parseExpression = (expressionArray, splitterFunction) =>
-    {
-      let concatenateArrays = (x,y) => {return(x.concat(y))}
-      return expressionArray.map(x => splitterFunction(x)).reduce(y => concatenateArrays(y))
-    }
+    /* helpers */
+    isExpressionContainsSymbolFromArray = (expression, symbolsArray) =>  { return expression.split("").some(x => symbolsArray.includes(x))}
 
+    getLastAvailableExpressionSymbolIndex = (expression, symbolsArray) => { return (Math.max.apply(null,symbolsArray.map(x => expression.lastIndexOf(x))))} 
+
+    /* core functions */
+    // 1 gets all the elements from the function array
     parseExpressionFromFunctionArray = (expressionArray) =>
     {
-      let concatenateArrays = (x,y) => {return(x.concat(y))}
-      return expressionArray.map( 
-                                  x => ( this._functionArray.map(fn => fn(x)).reduce(z => concatenateArrays(z)) )
-                                ).reduce(y => concatenateArrays(y))
+      let i = 0; let x = 0;
+      let prevArr = expressionArray; let nextArr = [];
+
+      while(x < this._functionArray.length)
+      {
+        while ( i < prevArr.length)
+        {
+          nextArr = nextArr.concat(this._functionArray[x](prevArr[i]))
+          i++
+        }
+        i = 0
+        prevArr = nextArr
+        nextArr = []
+        x++
+      }
+      return prevArr
     }
 
-    // Gets the array of tokens split by chosen symbols
+    // 2 Gets the array of tokens split by chosen symbol(s)
     getArrayOfTokensAndSymbols = (phrase, symbolsArray) =>
     {
       var phraseLettersArray = phrase.split("")
@@ -44,10 +59,50 @@ class Parser
       return(returnArray.concat(phrase.slice(i,x)).filter(x => x !== "") )
     }
 
+    // 3 get the tokens only
+    getAttributes = (expression) =>
+    {
+      let tokens = []
+      expression.split('.')
+                .filter( (i) => (i !== ''))
+                .forEach( (token) =>
+                          {
+                            (token.indexOf('(') > 0) ?
+                            tokens.push(token.substring(0, token.indexOf('('))) : 
+                            tokens.push(token)
+                          })
+      return tokens;
+    }
+
+    getLastAttribute = (expression) => 
+    {
+      let root = this.getExpressionRoot(expression)
+      return root.substr(this.getLastAvailableExpressionSymbolIndex(root,["."]))
+    }
+
+    // 4 work out whether it's an argument or next token we're filtering on - this basically depends on the last expression symbol
+    getLastAvailableExpressionSymbol = (expression, symbolsArray) =>
+    {
+      let index = this.getLastAvailableExpressionSymbolIndex(expression,symbolsArray)
+      return expression.slice(index, index+1)
+    }
+
+    // 5 get the expression root
+    getExpressionRoot = (expression, symbolsArray) => 
+    {
+      let root = expression.substring(1,this.getLastAvailableExpressionSymbolIndex(expression,symbolsArray));
+      return (root === '' ? expression : root)
+    }
+
+    // 6 get the expression end
+    getExpressionFilterPart = (expression, symbolsArray) => 
+    {
+      let start = this.getLastAvailableExpressionSymbolIndex(expression, symbolsArray);
+      return (start === -1 ? expression : expression.substr(start))
+    }
+
   
-  concatenateArrays = (arrays) =>  (Array.isArray(arrays[0]) ? arrays.reduce((x, y) => x.concat(y)) : arrays )
-  
-  splitPreserveSymbol = (expression, symbol) => ( 
+  splitPreserveSymbol = (expression, symbol) => (
     expression.map((x,i) =>  expression[i] === symbol ? symbol + " " + symbol : expression[i])
               .split(symbol)
               .filter(x => x !== "")
@@ -57,21 +112,5 @@ class Parser
   getAllSplitPreserveSymbol = (arr, symbol) => { 
       this.concatenateArrays(this.splitPreserveSymbol(arr,symbol))
     }
-
-  getRoot = (expression, lastSymbolArray) =>
-  {
-    let lastIndex = lastSymbolArray.reduce((x, y) => ( (x > expression.lastIndexOf(y)) ? x : expression.lastIndexOf(y)))
-    return expression.slice(1, (lastIndex + 1))
-  }
-
-  getLastFromExpressionTerms = (expression, symbols, number, includeSymbols = true) =>
-  {
-    const splitTokensArray = (b) =>
-    { 
-        return b.reduce((x,y) => this.getAllSplitPreserveSymbol(x,y))
-    }
-
-    return splitTokensArray.slice((splitTokensArray.length - number), (splitTokensArray.length))
-  }
 
 }
