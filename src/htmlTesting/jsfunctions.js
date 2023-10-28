@@ -337,23 +337,10 @@ class Parser
 
 
 /********API Functions***********/
-const fetchData = async () => {
-  try {
-    const response = await fetch(`http://localhost:4000/Calculations`)
-    const result = await response.json()
-    return result.map(x => x.Name)
-  } 
-  catch (error) {
-    console.error('Error fetching data:', error);
-  }
-}
-
-const api_url = "http://localhost:4000/Calculations";
-// Defining async function
+const calc_api_url = "http://localhost:4000/Calculations";
 const getapi = async (url, lister) => {
     const response = await fetch(url);
     var data = await response.json();
-    // console.log(data.map(x => x.Name))
     if (response) {
         setListerCalculations(lister, data.map(x => x.Name));
     }
@@ -363,11 +350,6 @@ const setListerCalculations = (lister, data) =>
 {
   lister.setCalculations(data)
 }
-// const getCalcs = () =>
-// {
-//   const res = fetchData(`http://localhost:4000/Calculations`).then(x => x.array)
-//   return res
-// }
 
 /******* instantiate object ******/
 const splitOnFirstInstanceOnly = (expression, charDelimiter) => ( expression.indexOf(charDelimiter) === -1 ? 
@@ -379,11 +361,9 @@ const splitOnFirstInstanceOfOpenPranthesis = getSplitStringFunction(splitOnFirst
 const splitStringByComma = getSplitStringFunction(splitString, ",")
 
 /****** create the lister object ******/
-// const calcs = fetchData() //fetchData()
-// console.log(calcs.then(response => (response)))
 const P = new Parser([splitOnFirstInstanceOfOpenPranthesis, splitStringByComma])
 const L = new Lister(P,componentArguments,grammars,[],argDependencies,followingSymbol,[".","("],compareArrays, getUnique)
-getapi(api_url, L)
+getapi(calc_api_url, L)
 
 
 /**** top level parent function ****/
