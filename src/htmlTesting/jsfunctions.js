@@ -1,8 +1,13 @@
-/* API Start command: json-server -p 4000 --watch ./src/mockAPI/db.json*/
+/* API Start command: 
+  json-server -p 4000 --watch ./src/mockAPI/db.json
+*/
 
 /* helper functions */
-const compareArrays = (a, b) => a.length === b.length && a.every((element, index) => element === b[index]);
+// const compareArrays = (a, b) => a.length === b.length && a.every((element, index) => element === b[index]);
+const compareArrays = (a, b) => { return JSON.stringify(a) === JSON.stringify(b)}
 const getUnique = (lst) => { return lst.filter((item, i, ar) => ar.indexOf(item) === i) }
+const cartesian = (...a) => a.reduce((a, b) => a.flatMap(d => b.map(e => [d, e].flat())));
+const intersects = (a, b) => { const s = new Set(b); return [...new Set(a)].some(x => s.has(x));};
 
 /* data */
 const templates = {
@@ -45,7 +50,7 @@ const grammars = { // the possible grammars (see those used below)
     12: ['data', 'level', 'datatype', 'definition', "currencytype"]
 };
 
-const followingSymbol = {'calc':'.', 'fixed':'.' ,'data':'.' ,'node':'(','nodestep':'(','enhanceddata':'(' ,
+const followingSymbol = {'calc':'.', 'fixed':'(' ,'data':'.' ,'node':'(','nodestep':'(','enhanceddata':'(' ,
                           'enhanceddatastep':'(' ,'performancestatistic':'(','level':'(','datatype':'(',
                           'key':'(','definition':'(','currency':'(','currencytype':'('};
                           
@@ -59,9 +64,11 @@ const argument_mappings = { // a dictionary of dictionaries to hold any argument
 };
 
 const componentArguments  = {
-  node:"-1", // maybe loaded based on the model
+  node:["-1"], // maybe loaded based on the model
   enhanceddata:[],
   data:['PATValueFromInputDataJson','PAVValueFromInputDataJson','ReturnValueFromInputDataJson','AssetAllocationValueFromInputDataJson','ExchangeRateValueFromInputDataJson','IndexValueFromInputDataJson','RunParameterValueFromInputDataJson','StaticValueFromDataFilterJson','EnhancedDataCalculatedValueOutputDataJson','EnhancedDataCalculatedStatisticValueOutputDataJson','StaticValueFromDataFilterJsonForProductCategoryCombination','AssetClassModelAssumptionFeeBasisPoints','IndexForAssetClassGroupFromInputDataJson','EnhancedDataIntermediateCalcValueFromOutputDataJson','NodeIntermediateCalcValueFromOutputDataJson','HurdleIntermediateCalcValueFromOutputDataJson','ProductCategory','PortfolioValueFromInputDataJson','EnhancedDataCalculatedValueArrayOutputDataJson','ModelRootNodeAttributeFromOutputDataJson','RunParameterValueFromInputDataJsonForParameterName','RagTextValueFromOutputDataJson','ParameterIntermediateCalcValueFromOutputDataJson','AttributeValueFromEnhancedDataKeyValueJson'],
+  fixed:[],
+  level:["firm","product","requestportfolio"],
   performancestatistic:['InformatioRatioDecayWeighted', 'TrackingErrorDecayWeighted', 'PerformanceHistoryLengthMonths','BenchmarkHistoryLengthMonths', 'ExchangeRateHistoryLengthMonths','5YearTrackingError'],
   datatype:['text','numeric'],
   key:[], // tricky one as the key depends on the datatype
@@ -78,15 +85,17 @@ const argument_validations = {
 /* Classes */
 class Lister
 { 
-    constructor(parser, args, grammars, argDependencies, followingSymbol, symbolsArray, compareArrays, getUnique)
+    constructor(parser, validator, args, grammars, argDependencies, followingSymbol, symbolsArray, attributes, compareArrays, getUnique)
     {
       this._parser = parser
+      this._validator = validator
       this._args = args
       this._grammars = grammars
       this._argDependencies = argDependencies
       this._followingSymbol = followingSymbol
       this._jsonGrammars = Object.values(grammars).map((x) => (JSON.stringify(x)))
       this._symbolsArray = symbolsArray ?? [".", "("]
+      this._attributes = attributes
       this._compareArrays = compareArrays
       this._getUnique = getUnique
     }
@@ -109,24 +118,30 @@ class Lister
     /* core functions */
     getMatchGrammars = (attributes) =>
     {
-      let attributesLength = attributes.length
+      let attributesLength = [attributes].length
       let grammarsFiltered = []
+      let x = 1
 
-      for(let x = 1; x < Object.keys(this._grammars).length; x++)
+      while(x < Object.keys(this._grammars).length)
       {
-        if(this._compareArrays(attributes, this._grammars[x].slice(0, attributesLength)))
+        if(this._compareArrays([attributes], this._grammars[x].slice(0, attributesLength)))
         {
-          grammarsFiltered.push(this._grammars[x]);
+          grammarsFiltered.push(this._grammars[x])
         }
+        x++
       }
       return(grammarsFiltered)
     }
 
-    getNextAttributeList = (expression) => 
+    getNextAttributeList = () => 
     {
-        let attributes = this._parser.getAttributes(expression)
+        let expression = this._parser._expressions[this._parser._expressions.length - 1]
+        let lastAttribute = this._parser.getLastAttribute()
+        let attributesSplit = [this._parser.getAttributes(expression)[this._parser.getAttributes(expression).indexOf(lastAttribute)]]
+        let attributes = attributesSplit[attributesSplit.indexOf(lastAttribute)]
         let grammarsFiltered = this.getMatchGrammars(attributes)
-        var index = Object.keys(attributes).length
+
+        var index = Object.keys([attributes]).length
         let dLength = Object.keys(grammarsFiltered).length
         let tokens = [];
         for( let i = 0; i < dLength; i++ )
@@ -164,15 +179,22 @@ class Lister
         {
             if (lastSymbol === ".")
             {
-                return(this.getNextAttributeList(expression)) 
+                return(this.getNextAttributeList()) 
             }
             else if(lastSymbol === "(")
-            { 
-                let argAttribute = this._parser.getLastAttribute(expression)
-                return this._getArguments(expression,argAttribute,this._argDependencies[argAttribute])
+            {
+                  let lastAttribute = this._parser.getLastAttribute()
+                  if(this._calculations.map(x => x.toLowerCase()).includes(lastAttribute.toLowerCase()))
+                  {
+                    return this.getNewExpression()
+                  }
+                  else 
+                  {
+                    return this.getArguments(expression,lastAttribute,this._argDependencies[lastAttribute])
+                  }
             }
-        }
-    }
+          }
+      }
 
     getSimpleFilter = (expressionFilterPart, filterArray) =>
     {
@@ -186,8 +208,9 @@ class Lister
     {
       // filter part
       let isRoot = (expression.indexOf("(") === -1 ) ? true : false
-      let expressions = this._parser.parseExpressionFromFunctionArray(expression)
-      let lastExpression = expressions[expressions.length - 1]
+      this._parser.parseExpressionFromFunctionArray(expression)
+      let expressions = this._parser.getExpressions()
+      let lastExpression =  expressions[expressions.length - 1]
       let filterPart = this._parser.getExpressionFilterPart(lastExpression,this._symbolsArray)
 
       // array part
@@ -195,6 +218,12 @@ class Lister
 
       // get the next dropdown list
       return this.getSimpleFilter(filterPart,  nextTokenList)
+    }
+
+    // 8 begin expression
+    getNewExpression = () => 
+    {
+      return  getUnique(Object.values(grammars).map((x) => x[0]))
     }
 
     getGrammarPlaceholdersArray = (grammar,openingChars='{%', closingChars='%}') =>
@@ -219,12 +248,26 @@ class Lister
 
 class Parser
 {
-    constructor (functionArray)
+    constructor (functionArray, expressions=[])
     {
       this._functionArray = functionArray
+      this._expressions = expressions
     }
 
-    // 1 gets all the elements from the function array
+    /*************** properties ***************/
+    getExpressions = () => 
+    {
+      return this._expressions
+    }
+
+    setExpressions = (expressions) => 
+    {
+      this._expressions = expressions;
+    }
+
+    /*************** core functions ***************/
+
+    // 1 gets all the elements from the function array => needs work = this violates the single responsibility principle
     parseExpressionFromFunctionArray = (expression) =>
     {
       let i = 0; let x = 0;
@@ -242,7 +285,7 @@ class Parser
         nextArr = []
         x++
       }
-      return prevArr
+      this.setExpressions(prevArr)
     }
 
     // 2 Gets the array of tokens split by chosen symbol(s)
@@ -304,7 +347,7 @@ class Parser
     {
       expression = expression ?? ""
       if (!(expression.split("").some(x => symbolsArray.includes(x)))) return -1
-      return (expression.length - Math.min.apply(null, symbolsArray.map(x => expression.split("").reverse().indexOf(x))) - 1)
+      return (expression.length - Math.min.apply(null, symbolsArray.map(x => expression.split("").reverse().indexOf(x)).filter(x => x !== -1)))
     }
 
     // 5 get the expression root
@@ -321,6 +364,14 @@ class Parser
       return (start === -1 ? expression : expression.substr(start))
     }
 
+    // 7 Get last attribute - work out the list of associated arguments
+    getLastAttribute  = () =>
+    {
+      let filteredExpressions =  this._expressions.filter(x => intersects(x.split(""), [".","("])) //TODO = this needs refactoring!
+      let lastExpression = filteredExpressions[filteredExpressions.length - 1]
+      let attributesList = this.getAttributes(lastExpression).filter(x => this._attributes.includes(x))
+      return attributesList[attributesList.length - 1]
+    }
   
   splitPreserveSymbol = (expression, symbol) => (
     expression.map((x,i) =>  expression[i] === symbol ? symbol + " " + symbol : expression[i])
@@ -335,6 +386,21 @@ class Parser
 
 }
 
+class Validator
+{
+  constructor (cartesian)
+  {
+    this._createCartesianProduct = cartesian 
+  }
+
+  validateListIncludes = (expression, expressionInitiator=["calc"], expressionAttributes, expressionJoiner = ".") =>
+  {
+    return this._createCartesianProduct(expressionInitiator,expressionAttributes).map(x => x.join(expressionJoiner)).includes(expression)
+  }
+
+}
+
+
 
 /********API Functions***********/
 const calc_api_url = "http://localhost:4000/Calculations";
@@ -342,7 +408,7 @@ const getapi = async (url, lister) => {
     const response = await fetch(url);
     var data = await response.json();
     if (response) {
-        setListerCalculations(lister, data.map(x => x.Name));
+        setListerCalculations(lister, data.map(x => x.CalcShortName));
     }
 }
 
@@ -354,19 +420,24 @@ const setListerCalculations = (lister, data) =>
 /******* instantiate object ******/
 const splitOnFirstInstanceOnly = (expression, charDelimiter) => ( expression.indexOf(charDelimiter) === -1 ? 
 											[expression] : 
-											[expression.substr(0,expression.indexOf(charDelimiter)),expression.substr(expression.indexOf(charDelimiter))])
+											[expression.substr(0,expression.indexOf(charDelimiter)+1),expression.substr(expression.indexOf(charDelimiter)+1)])
 const splitString = (expression, charDelimiter) => {return (expression.split(charDelimiter))}
+
+// create the specific functions for the class
 const getSplitStringFunction = (func, charDelimiter) =>  { return function (expression) { return func(expression, charDelimiter) } }
 const splitOnFirstInstanceOfOpenPranthesis = getSplitStringFunction(splitOnFirstInstanceOnly, "(")
 const splitStringByComma = getSplitStringFunction(splitString, ",")
+const listerAttributes = getUnique(Object.values(grammars).reduce((x,y) => x.concat(y)))
 
 /****** create the lister object ******/
 const P = new Parser([splitOnFirstInstanceOfOpenPranthesis, splitStringByComma])
-const L = new Lister(P,componentArguments,grammars,[],argDependencies,followingSymbol,[".","("],compareArrays, getUnique)
-getapi(calc_api_url, L)
+const V = new Validator(cartesian)
+const L = new Lister(P, V, componentArguments, grammars, argDependencies, followingSymbol, [".","("],listerAttributes, compareArrays, getUnique)
+getapi(calc_api_url, L) //Decorate Lister
 
 
 /**** top level parent function ****/
+// calc._CheckOrTrueSequence(
 const getFilteredList = (statement) => // should return the filtered list at every stage, based on the input alone
 {
   return(L.getNextFilteredDropdownList(statement))
