@@ -299,7 +299,7 @@ import React from "react";
           {
             return (typeof(this._args[attribute]) !== 'undefined' ? this._args[attribute] : []);
           }
-      };
+      }
 
       validateExpression = (expression) => {
         
